@@ -61,16 +61,16 @@ loadcurrentslide(char **argv, int slide)
 void
 reloadcurrentslide(int sig)
 {
+	/*
+	 * Keep this out of SIGHUP, in case this is used somewhere else.
+	 */
+	slidechanged = 1;
+
 	if (sig == SIGHUP) {
 		/* Make ncurses redisplay slide. */
 		if (raise(SIGWINCH) < 0)
 			err(1, "raise");
 	}
-
-	/*
-	 * Keep this out of SIGHUP, in case this is used somewhere else.
-	 */
-	slidechanged = 1;
 }
 
 void
