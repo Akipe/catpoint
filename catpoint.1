@@ -1,4 +1,4 @@
-.Dd December 20, 2020
+.Dd December 28, 2020
 .Dt CATPOINT 1
 .Os
 .Sh NAME
@@ -26,11 +26,20 @@ Go to the first slide.
 .It i, END KEY
 Go to the last slide.
 .It r, ^L
+Redraw the current slide contents.
+.El
+.Sh SIGNALS
+.Bl -tag -width Ds
+.It SIGHUP
 Reload and redraw the current slide contents.
+.It SIGINT, SIGQUIT, SIGTERM
+Quit
+.It SIGWINCH
+Redraw the current slide contents.
 .El
 .Sh EXIT STATUS
 .Ex -std
 .Sh SEE ALSO
-.Xr cat 1 ,
+.Xr cat 1
 .Sh AUTHORS
 .An Christoph Lohmann Aq Mt 20h@r-36.net
