@@ -17,6 +17,8 @@
 char *currentslidep, **slidefiles; /* the slides */
 int nslides, currentslide, currentslidelen, exitstatus = 1;
 
+volatile sig_atomic_t slidechanged = 1;
+
 void
 unloadcurrentslide(void)
 {
@@ -64,6 +66,11 @@ reloadcurrentslide(int sig)
 		if (raise(SIGWINCH) < 0)
 			err(1, "raise");
 	}
+
+	/*
+	 * Keep this out of SIGHUP, in case this is used somewhere else.
+	 */
+	slidechanged = 1;
 }
 
 void
@@ -112,8 +119,11 @@ main(int argc, char *argv[])
 	curs_set(FALSE); /* hide cursor */
 
 show:
-	/* display slide */
-	loadcurrentslide(slidefiles, currentslide);
+	/* display slide if changed */
+	if (slidechanged) {
+		slidechanged = 0;
+		loadcurrentslide(slidefiles, currentslide);
+	}
 	clear();
 	refresh();
 	printw("%.*s", currentslidelen, currentslidep);
@@ -135,6 +145,7 @@ again:
 	case KEY_DOWN:
 	case KEY_NPAGE:
 		if (currentslide < nslides - 1) {
+			slidechanged = 1;
 			currentslide++;
 			goto show;
 		}
@@ -147,6 +158,7 @@ again:
 	case KEY_UP:
 	case KEY_PPAGE:
 		if (currentslide > 0) {
+			slidechanged = 1;
 			currentslide--;
 			goto show;
 		}
@@ -157,11 +169,15 @@ again:
 	case 'u':
 	case KEY_BEG:
 	case KEY_HOME:
+		if (currentslide != 0)
+			slidechanged = 1;
 		currentslide = 0;
 		goto show;
 	/* last */
 	case 'i':
 	case KEY_END:
+		if (currentslide != (nslides - 1))
+			slidechanged = 1;
 		currentslide = nslides - 1;
 		goto show;
 	/* reload */
