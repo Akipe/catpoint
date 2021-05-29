@@ -4,15 +4,18 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <err.h>
 #include <curses.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <locale.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+void die(const char *, ...);
 
 char *currentslidep, **slidefiles; /* the slides */
 int nslides, currentslide, currentslidelen;
@@ -26,7 +29,7 @@ unloadcurrentslide(void)
 		return;
 
 	if (munmap(currentslidep, currentslidelen) < 0)
-		err(1, "munmap: %s", slidefiles[currentslide]);
+		die("munmap: %s", slidefiles[currentslide]);
 }
 
 void
@@ -35,6 +38,28 @@ cleanup(void)
 	unloadcurrentslide();
 
 	endwin(); /* restore terminal */
+}
+
+/* print to stderr, call cleanup() and _exit(). */
+void
+die(const char *fmt, ...)
+{
+	va_list ap;
+	int saved_errno;
+
+	saved_errno = errno;
+	cleanup();
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+
+	if (saved_errno)
+		fprintf(stderr, ": %s", strerror(saved_errno));
+	fflush(stderr);
+	write(2, "\n", 1);
+
+	_exit(1);
 }
 
 void
@@ -54,12 +79,14 @@ loadcurrentslide(char **argv, int slide)
 
 	fd = open(slidefiles[slide], O_RDONLY, 0);
 	if (fd < 0)
-		err(1, "open: %s", slidefiles[slide]);
+		die("open: %s", slidefiles[slide]);
 	if (fstat(fd, &statbuf) < 0)
-		err(1, "fstat: %s", slidefiles[slide]);
+		die("fstat: %s", slidefiles[slide]);
 	currentslidep = mmap(NULL, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (currentslidep == MAP_FAILED)
-		err(1, "mmap: %s", slidefiles[slide]);
+	if (currentslidep == MAP_FAILED) {
+		currentslidep = NULL;
+		die("mmap: %s", slidefiles[slide]);
+	}
 	currentslidelen = statbuf.st_size;
 	close(fd);
 }
@@ -75,7 +102,7 @@ reloadcurrentslide(int sig)
 	if (sig == SIGHUP) {
 		/* Make ncurses redisplay slide. */
 		if (raise(SIGWINCH) < 0)
-			err(1, "raise");
+			die("raise");
 	}
 }
 
@@ -102,8 +129,10 @@ main(int argc, char *argv[])
 {
 	int c;
 
-	if (argc == 1)
-		errx(1, "usage: %s file ...", argv[0]);
+	if (argc == 1) {
+		errno = 0;
+		die("usage: %s file ...", argv[0]);
+	}
 	slidefiles = ++argv;
 	nslides = --argc;
 
