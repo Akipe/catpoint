@@ -53,7 +53,7 @@ loadcurrentslide(char **argv, int slide)
 		err(1, "fstat: %s", slidefiles[slide]);
 	currentslidep = mmap(NULL, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (currentslidep == MAP_FAILED)
-		err(1, "mmap");
+		err(1, "mmap: %s", slidefiles[slide]);
 	currentslidelen = statbuf.st_size;
 	close(fd);
 }
