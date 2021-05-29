@@ -15,7 +15,7 @@
 #include <unistd.h>
 
 char *currentslidep, **slidefiles; /* the slides */
-int nslides, currentslide, currentslidelen, exitstatus = 1;
+int nslides, currentslide, currentslidelen;
 
 volatile sig_atomic_t slidechanged = 1;
 
@@ -30,12 +30,18 @@ unloadcurrentslide(void)
 }
 
 void
-cleanup(int sig)
+cleanup(void)
 {
 	unloadcurrentslide();
 
 	endwin(); /* restore terminal */
-	exit(exitstatus);
+}
+
+void
+quit(int sig)
+{
+	cleanup();
+	exit(0);
 }
 
 void
@@ -82,7 +88,7 @@ setsignal()
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 
-	sa.sa_handler = cleanup;
+	sa.sa_handler = quit;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGQUIT, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
@@ -190,9 +196,7 @@ again:
 		goto again;
 	}
 
-	/* unmap mem */
-	exitstatus = 0;
-	cleanup(0);
+	cleanup();
 
 	return 0;
 }
