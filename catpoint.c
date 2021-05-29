@@ -174,6 +174,7 @@ again:
 	case 'q':
 		break;
 	/* next */
+	case ' ':
 	case 'l':
 	case 'j':
 	case KEY_RIGHT:
@@ -186,7 +187,6 @@ again:
 		}
 		goto again;
 	/* prev */
-	case ' ':
 	case 'h':
 	case 'k':
 	case KEY_LEFT:
