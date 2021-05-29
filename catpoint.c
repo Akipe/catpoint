@@ -41,7 +41,7 @@ void
 quit(int sig)
 {
 	cleanup();
-	exit(0);
+	_exit(128 + sig);
 }
 
 void
