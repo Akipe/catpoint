@@ -2,9 +2,10 @@
 
 Tools links list for making nice presentations.
 
+* Pointools is powerpoint made right and easy
+	* git://bitreich.org/pointtools
 * Gramscii for simple ASCII box drawing
 	* git://bitreich.org/gramscii
 * Ploot for plotting
 	* git://bitreich.org/ploot
 * Gnuplot for plotting
-
