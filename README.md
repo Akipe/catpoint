@@ -9,7 +9,7 @@ documentation comes in a series of slides.  Just do:
 
 Check out
 
-	http://git.r-36.net/pointtools
+	git://bitreich.org/pointtools
 
 How to easily create a presentation for catpoint from some md file is then:
 
